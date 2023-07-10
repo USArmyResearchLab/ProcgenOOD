@@ -60,67 +60,76 @@ struct GameOptions {
 };
 
 class Game {
-  public:
-    const std::string game_name;
-    std::map<std::string, int> info_name_to_offset;
+    public:
+        const std::string game_name;
+        std::map<std::string, int> info_name_to_offset;
 
-    GameOptions options;
+        GameOptions options;
 
-    bool initial_reset_complete = false;
-    bool grid_step = false;
-    int level_seed_low = 0;
-    int level_seed_high = 1;
-    int game_type = 0;
-    int game_n = 0;
+        bool initial_reset_complete = false;
+        bool grid_step = false;
+        int level_seed_low = 0;
+        int level_seed_high = 1;
+        int game_type = 0;
+        int game_n = 0;
+        bool eval_env = false;
+        std::string eval_holdout_type = "none";
+        std::string train_holdout_type = "none";
+        float eval_holdout_frac = 0.0f;
+        float train_holdout_frac = 0.0f;
+        std::string holdout_sampling_mode = "extrapolate"; // extrapolate, interpolate 
 
-    RandGen level_seed_rand_gen;
-    RandGen rand_gen;
+        std::string holdout_type = "none";
+        float holdout_frac = 0.0f;
 
-    StepData step_data;
-    int action = 0;
+        RandGen level_seed_rand_gen;
+        RandGen rand_gen;
 
-    int timeout = 0;
+        StepData step_data;
+        int action = 0;
 
-    int current_level_seed = 0;
-    int prev_level_seed = 0;
-    int episodes_remaining = 0;
-    bool episode_done = false;
+        int timeout = 0;
 
-    int last_reward_timer = 0;
-    float last_reward = 0.0f;
-    int default_action = 0;
+        int current_level_seed = 0;
+        int prev_level_seed = 0;
+        int episodes_remaining = 0;
+        bool episode_done = false;
 
-    int fixed_asset_seed = 0;
+        int last_reward_timer = 0;
+        float last_reward = 0.0f;
+        int default_action = 0;
 
-    uint32_t render_buf[RES_W * RES_H];
+        int fixed_asset_seed = 0;
 
-    int cur_time = 0;
+        uint32_t render_buf[RES_W * RES_H];
 
-    bool is_waiting_for_step = false;
+        int cur_time = 0;
 
-    // pointers to buffers
-    int32_t *action_ptr;
-    std::vector<void *> obs_bufs;
-    std::vector<void *> info_bufs;
-    float *reward_ptr = nullptr;
-    uint8_t *first_ptr = nullptr;
+        bool is_waiting_for_step = false;
 
-    Game(std::string name);
-    void step();
-    void reset();
-    void render_to_buf(void *buf, int w, int h, bool antialias);
-    void parse_options(std::string name, VecOptions opt_vec);
+        // pointers to buffers
+        int32_t *action_ptr;
+        std::vector<void *> obs_bufs;
+        std::vector<void *> info_bufs;
+        float *reward_ptr = nullptr;
+        uint8_t *first_ptr = nullptr;
 
-    virtual ~Game() = 0;
-    virtual void observe();
-    virtual void game_init() = 0;
-    virtual void game_reset() = 0;
-    virtual void game_step() = 0;
-    virtual void game_draw(QPainter &p, const QRect &rect) = 0;
-    virtual void serialize(WriteBuffer *b);
-    virtual void deserialize(ReadBuffer *b);
+        Game(std::string name);
+        void step();
+        void reset();
+        void render_to_buf(void *buf, int w, int h, bool antialias);
+        void parse_options(std::string name, VecOptions opt_vec);
 
-  private:
-    int reset_count = 0;
-    float total_reward = 0.0f;
+        virtual ~Game() = 0;
+        virtual void observe();
+        virtual void game_init() = 0;
+        virtual void game_reset() = 0;
+        virtual void game_step() = 0;
+        virtual void game_draw(QPainter &p, const QRect &rect) = 0;
+        virtual void serialize(WriteBuffer *b);
+        virtual void deserialize(ReadBuffer *b);
+
+    private:
+        int reset_count = 0;
+        float total_reward = 0.0f;
 };

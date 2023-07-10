@@ -254,7 +254,7 @@ class CoinRun : public BasicAbstractGame {
         ent->smart_step = true;
         ent->image_type = ENEMY1;
         ent->render_z = 1;
-        choose_random_theme(ent);
+        choose_random_theme_type_match(ent, "enemy");
     }
 
     void create_crate(int x, int y) {
@@ -264,18 +264,25 @@ class CoinRun : public BasicAbstractGame {
 
     void generate_coin_to_the_right() {
         int max_difficulty = 3;
-        int dif = rand_gen.randn(max_difficulty) + 1;
+        int dif = randn_type_switch(max_difficulty, "platform") + 1;  // 1 to 2 for training; 3 for eval
 
-        int num_sections = rand_gen.randn(dif) + dif;
+        int num_sections = rand_gen.randn(dif) + dif;  // 1 to 4 for training; 3 to 5 for eval
+
+        if (this->eval_env) {
+            assert(1 <= dif <= 3);
+            assert(3 <= num_sections <= 5);
+        } else {
+            assert(1 <= dif <= 2);
+            assert(1 <= num_sections <= 4);
+        }
+
+        // printf("eval_env = %d, dif = %d, num_sections = %d\n", this->eval_env, dif, num_sections);
+
         int curr_x = 5;
         int curr_y = 1;
 
         int pit_threshold = dif;
         int danger_type = rand_gen.randn(3);
-
-        bool allow_pit = (options.debug_mode & (1 << 1)) == 0;
-        bool allow_crate = (options.debug_mode & (1 << 2)) == 0;
-        bool allow_dy = (options.debug_mode & (1 << 3)) == 0;
 
         int w = main_width;
 
@@ -285,17 +292,18 @@ class CoinRun : public BasicAbstractGame {
         int max_dy = (_max_dy - .5);
         int max_dx = (_max_dx - .5);
 
+        bool allow_pit      = true; 
+        bool allow_crate    = true;
+        bool allow_dy       = true;
         bool allow_monsters = true;
 
         if (options.distribution_mode == EasyMode) {
             allow_monsters = false;
         }
-
         for (int section_idx = 0; section_idx < num_sections; section_idx++) {
             if (curr_x + 15 >= w) {
                 break;
             }
-
             int dy = rand_gen.randn(4) + 1 + int(dif / 3);
 
             if (!allow_dy) {
@@ -319,7 +327,6 @@ class CoinRun : public BasicAbstractGame {
             if (curr_y < 1) {
                 curr_y = 1;
             }
-
             bool use_pit = allow_pit && (dx > 7) && (curr_y > 3) && (rand_gen.randn(20) >= pit_threshold);
 
             if (use_pit) {
@@ -336,7 +343,6 @@ class CoinRun : public BasicAbstractGame {
                 fill_ground_block(curr_x + dx - x2, 0, x2, curr_y);
 
                 int lava_height = rand_gen.randn(curr_y - 3) + 1;
-
                 if (danger_type == 0) {
                     fill_lava_block(curr_x + x1, 1, pit_width, lava_height);
                 } else if (danger_type == 1) {
@@ -423,14 +429,14 @@ class CoinRun : public BasicAbstractGame {
         has_support = false;
         facing_right = true;
 
-        if (options.distribution_mode == EasyMode) {
-            agent->image_theme = 0;
-            wall_theme = 0;
-            background_index = 0;
-        } else {
-            choose_random_theme(agent);
-            wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
-        }
+        assert(options.distribution_mode != EasyMode); 
+        choose_random_theme_type_match(agent, "agent");
+        wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
+        if (options.debug_mode >= 2) {
+            printf("chose agent theme: %d, with %d total themes\n", 
+                agent->image_theme, asset_num_themes[agent->image_type]);
+            printf("chose wall_theme: %d, with %d total themes\n", wall_theme, NUM_GROUND_THEMES);
+        } 
 
         agent->rx = .5;
         agent->ry = 0.5787f;

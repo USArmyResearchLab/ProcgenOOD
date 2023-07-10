@@ -117,7 +117,7 @@ class HeistGame : public BasicAbstractGame {
 
         int min_maze_dim = 5;
         int max_diff = (world_dim - min_maze_dim) / 2;
-        int difficulty = rand_gen.randn(max_diff + 1);
+        int difficulty = randn_type_switch(max_diff + 1, "platform"); 
 
         options.center_agent = options.distribution_mode == MemoryMode;
 

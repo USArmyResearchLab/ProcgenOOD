@@ -18,6 +18,7 @@ class VecOptions {
     void consume_string(std::string name, std::string *value);
     void consume_int(std::string name, int32_t *value);
     void consume_bool(std::string name, bool *value);
+    void consume_float(std::string name, float *value);
     void ensure_empty();
 
   private:

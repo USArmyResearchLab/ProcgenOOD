@@ -18,7 +18,6 @@ const int DUST_CLOUD = 8;
 const int OOB_WALL = 10;
 
 const int ENEMY_REWARD = 2.0f;
-const int NUM_ENEMY_THEMES = 7;
 
 const float ENEMY_VEL = 0.05f;
 const float BALL_V_ROT = PI * 0.23f;
@@ -348,7 +347,15 @@ class DodgeballGame : public BasicAbstractGame {
 
         spawn_entities(num_enemies, enemy_r, ENEMY, 0, 0, main_width, main_height);
 
-        int enemy_theme = rand_gen.randn(NUM_ENEMY_THEMES);
+        // Choose a random theme for all enemies 
+        int enemy_theme; 
+        for (auto ent : entities) { 
+            if (ent->type == ENEMY) {
+                initialize_asset_if_necessary(ent->image_type);
+                enemy_theme = get_random_theme_type_match(ent, "enemy");
+                break; 
+            } 
+        }
 
         for (auto ent : entities) {
             if (ent->type == ENEMY) {

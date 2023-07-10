@@ -210,7 +210,7 @@ class BossfightGame : public BasicAbstractGame {
         options.center_agent = false;
 
         boss = add_entity(main_width / 2, main_height / 2, 0, 0, BOSS_R, BOSS);
-        choose_random_theme(boss);
+        choose_random_theme_type_match(boss, "enemy");
         match_aspect_ratio(boss);
 
         shields = add_entity_rxy(boss->x, boss->y, 0, 0, 1.2 * boss->rx, 1.2 * boss->ry, SHIELDS);
@@ -224,7 +224,7 @@ class BossfightGame : public BasicAbstractGame {
 
         boss->health = round_health * num_rounds;
 
-        choose_random_theme(agent);
+        choose_random_theme_type_match(agent, "agent"); 
 
         player_laser_theme = rand_gen.randn(NUM_LASER_THEMES);
         boss_laser_theme = rand_gen.randn(NUM_LASER_THEMES);

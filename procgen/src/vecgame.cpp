@@ -3,6 +3,10 @@
 #include "vecoptions.h"
 #include "game.h"
 
+#include <unordered_map>
+#include <vector>
+#include <unordered_set> 
+
 const int32_t END_OF_BUFFER = 0xCAFECAFE;
 
 extern void coinrun_old_init(int rand_seed);
@@ -171,6 +175,12 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     num_envs = _nenvs;
     games.resize(num_envs);
     std::string env_name;
+    bool eval_env = false;
+    std::string eval_holdout_type; 
+    std::string train_holdout_type; 
+    std::string holdout_sampling_mode = "extrapolate";
+    float eval_holdout_frac = 0.0f;
+    float train_holdout_frac = 0.0f;
 
     int num_levels = 0;
     int start_level = -1;
@@ -188,6 +198,18 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     opts.consume_int("num_threads", &num_threads);
     opts.consume_string("resource_root", &resource_root);
     opts.consume_bool("render_human", &render_human);
+    opts.consume_bool("eval_env", &eval_env);
+    opts.consume_string("eval_holdout_type", &eval_holdout_type);
+    opts.consume_string("train_holdout_type", &train_holdout_type);
+    opts.consume_float("eval_holdout_frac", &eval_holdout_frac);
+    opts.consume_float("train_holdout_frac", &train_holdout_frac);
+    opts.consume_string("holdout_sampling_mode", &holdout_sampling_mode);
+
+    // Map Asset type (integer) to a set of theme indices. 
+    // This allows more flexible selection for inter/extrapolation, 
+    // and could further simplify RNG logic. 
+    std::unordered_map<int, std::unordered_set<int>> asset_idx_map_train;
+    std::unordered_map<int, std::unordered_set<int>> asset_idx_map_eval;
 
     std::call_once(global_init_flag, global_init, rand_seed,
                    resource_root);
@@ -318,6 +340,21 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         games[n]->is_waiting_for_step = false;
         games[n]->parse_options(name, opts);
         games[n]->info_name_to_offset = info_name_to_offset;
+        games[n]->eval_env = eval_env;
+        games[n]->eval_holdout_type = eval_holdout_type;
+        games[n]->holdout_sampling_mode = holdout_sampling_mode;
+        games[n]->train_holdout_type = train_holdout_type;
+        games[n]->eval_holdout_frac = eval_holdout_frac;
+        games[n]->train_holdout_frac = train_holdout_frac;
+        // std::cout << "1 eval_env = " << games[n]->eval_env << std::endl;
+
+        if (eval_env) {
+            games[n]->holdout_type = eval_holdout_type;
+            games[n]->holdout_frac = eval_holdout_frac;
+        } else {
+            games[n]->holdout_type = train_holdout_type;
+            games[n]->holdout_frac = train_holdout_frac;
+        }
 
         // Auto-selected a fixed_asset_seed if one wasn't specified on
         // construction

@@ -5,6 +5,7 @@
 
 int RandGen::randint(int low, int high) {
     fassert(is_seeded);
+    fassert(high > low);
     uint32_t x = stdgen();
     uint32_t range = high - low;
     return low + (x % range);
@@ -12,6 +13,7 @@ int RandGen::randint(int low, int high) {
 
 int RandGen::randn(int high) {
     fassert(is_seeded);
+    fassert(high > 0);
     uint32_t x = stdgen();
     return (x % high);
 }

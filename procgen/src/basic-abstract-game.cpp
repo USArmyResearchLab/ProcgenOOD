@@ -3,6 +3,9 @@
 #include "assetgen.h"
 #include "qt-utils.h"
 
+#include <algorithm> 
+#include <typeinfo>
+
 const float MAXVTHETA = 15 * PI / 180;
 const float MIXRATEROT = 0.5f;
 
@@ -51,6 +54,13 @@ BasicAbstractGame::~BasicAbstractGame() {
     }
 }
 
+void BasicAbstractGame::_print_withheld(int total, std::string var_type) {
+    int num_withheld = get_num_withhold(total, var_type);
+    printf("Eval env = %d\n", eval_env); 
+    printf("Total %s: %d\n", var_type.c_str(), total);
+    printf("Total %s withheld: %d\n", var_type.c_str(), num_withheld);
+}
+
 void BasicAbstractGame::game_init() {
     if (!options.use_generated_assets) {
         load_background_images();
@@ -74,6 +84,14 @@ void BasicAbstractGame::game_init() {
     basic_reflections.resize(USE_ASSET_THRESHOLD * MAX_IMAGE_THEMES, nullptr);
     asset_aspect_ratios.resize(USE_ASSET_THRESHOLD * MAX_IMAGE_THEMES, 0);
     asset_num_themes.resize(USE_ASSET_THRESHOLD, 0);
+
+    if (options.debug_mode >= 1) { 
+        printf("Game initialized\n");
+        
+        // Print the number of total and withheld assets for each variable to debug 
+        _print_withheld((int)(main_bg_images_ptr->size()), "background");
+        // _print_withheld((int)(basic_assets.size()), "asset");
+    }
 }
 
 void BasicAbstractGame::initialize_asset_if_necessary(int img_idx) {
@@ -755,6 +773,48 @@ void BasicAbstractGame::erase_if_needed() {
     }
 }
 
+int BasicAbstractGame::get_num_withhold(int high, std::string var_type) {
+    if (type_match(var_type)) {
+        if (holdout_frac > 0) {
+            return std::max((int)(high * holdout_frac), 1);
+        }
+    } 
+    return 0;
+}
+
+// Version of rand_gen.randn that uses the appropriate ranges for train and eval holdout fractions.
+// This is used for categorical sampling. 
+int BasicAbstractGame::randn(int high) {
+    int num_withhold = get_num_withhold(high, "all");
+    if (num_withhold == 0) { 
+        // Early escape if no holdout; avoids complicated modulo logic below 
+        return rand_gen.randn(high); 
+    } 
+    if (this->eval_env) { 
+        int start_idx = high - num_withhold;
+        auto chosen = rand_gen.randn(num_withhold);
+        return start_idx + chosen;
+    } else {
+        return rand_gen.randn(std::max(high - num_withhold, 1));
+    }
+}
+
+bool BasicAbstractGame::type_match(std::string var_type) {
+    return (holdout_type == "all" || holdout_type == var_type);
+}
+
+// Like the above method, but only withholds the last value when eval_env is true AND 
+// the provided var_type is the same as the eval_holdout_type (or eval_holdout_type is "all"). 
+int BasicAbstractGame::randn_type_switch(int high, std::string var_type) {
+    if (type_match(var_type)) { // Use special sampling here 
+        return randn(high); 
+    } else {                    // Use default sampling here 
+        return rand_gen.randn(high);
+    }
+}
+
+
+
 void BasicAbstractGame::game_reset() {
     choose_world_dim();
     fassert(main_width > 0 && main_height > 0);
@@ -764,7 +824,8 @@ void BasicAbstractGame::game_reset() {
     grid_size = main_width * main_height;
     grid.resize(main_width, main_height);
 
-    background_index = rand_gen.randn((int)(main_bg_images_ptr->size()));
+    int num_backgrounds = (int)(main_bg_images_ptr->size()); 
+    background_index = randn_type_switch(num_backgrounds, "background");
 
     AssetGen bggen(&rand_gen);
 
@@ -1036,8 +1097,86 @@ void BasicAbstractGame::fit_aspect_ratio(const std::shared_ptr<Entity> &ent) {
 }
 
 void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) {
+    // Old basic way of choosing a random theme
     initialize_asset_if_necessary(ent->image_type);
-    ent->image_theme = rand_gen.randn(asset_num_themes[ent->image_type]);
+    
+    int num_themes = asset_num_themes[ent->image_type];
+    auto theme = rand_gen.randn(num_themes);
+    ent->image_theme = theme;
+}
+
+void BasicAbstractGame::choose_random_theme_type_match(const std::shared_ptr<Entity> &ent, const std::string &var_type) {
+    // Choose a random theme based on the type of variable and train/eval environment 
+    if (type_match(var_type)) {
+        choose_random_theme_switch(ent);
+    } else {
+        choose_random_theme(ent);
+    }
+}
+
+int BasicAbstractGame::get_random_theme_type_match(const std::shared_ptr<Entity> &ent, const std::string &var_type) {
+    // Get a random theme integer based on the type of variable and train/eval environment. 
+    // Useful for setting multiple entities to the same theme. 
+    if (type_match(var_type)) {
+        return randn_type_switch(asset_num_themes[ent->image_type], var_type);
+    } else {
+        return rand_gen.randn(asset_num_themes[ent->image_type]);
+    }
+}
+
+void BasicAbstractGame::choose_random_theme_switch(const std::shared_ptr<Entity> &ent) {
+    // Dispatch method for choosing a random theme 
+    if (eval_env) {
+        choose_random_theme_eval(ent);
+    } else {
+        choose_random_theme_train(ent);
+    }
+}
+void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> &ent) {
+    initialize_asset_if_necessary(ent->image_type);
+    
+    int num_themes = asset_num_themes[ent->image_type];
+    if (train_holdout_frac == 0.0) {
+        ent->image_theme = rand_gen.randn(num_themes);
+        if (options.debug_mode >= 2) {
+            printf("Train holdout frac is 0.0; choosing random theme %d for image type %d \n", 
+                   ent->image_theme, ent->image_type);
+        }
+        return;
+    }
+
+    float inv_frac = 1 - train_holdout_frac;
+    float theme_frac = num_themes * inv_frac; 
+    int num_train_themes = std::max((int)theme_frac, 1);  // Ensure at least one theme is chosen
+    ent->image_theme = rand_gen.randn(num_train_themes);
+
+    if (num_train_themes == num_themes) {
+        throw std::invalid_argument(
+            "ERROR: num_train_themes == total number of themes, \
+             while train_holdout_frac > 0.0; this is not allowed. \n"
+        );
+    }
+    if (options.debug_mode >= 2) {
+        printf("Train holdout frac is %f; choosing random theme %d for image type %d \n", 
+               train_holdout_frac, ent->image_theme, ent->image_type);
+    }
+}
+void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &ent) {
+    initialize_asset_if_necessary(ent->image_type);
+
+    int num_themes = asset_num_themes[ent->image_type];
+    if (eval_holdout_frac == 0.0) {
+        ent->image_theme = rand_gen.randn(num_themes);
+        if (options.debug_mode >= 2) {
+            printf("Eval holdout frac is 0.0; choosing random theme %d for image type %d \n", 
+                   ent->image_theme, ent->image_type);
+        }
+        return;
+    }
+    float theme_frac = num_themes * eval_holdout_frac; 
+    int num_eval_themes = std::max((int)theme_frac, 1);
+    int start_idx = num_themes - num_eval_themes;
+    ent->image_theme = start_idx + rand_gen.randn(num_eval_themes);
 }
 
 void BasicAbstractGame::choose_step_random_theme(const std::shared_ptr<Entity> &ent) {
@@ -1174,13 +1313,6 @@ void BasicAbstractGame::serialize(WriteBuffer *b) {
     write_entities(b, entities);
 
     fassert(!options.use_generated_assets);
-    // these will be cleared and re-generated instead of being saved
-//     std::vector<std::shared_ptr<QImage>> basic_assets;
-//     std::vector<std::shared_ptr<QImage>> basic_reflections;
-//     std::vector<std::shared_ptr<QImage>> *main_bg_images_ptr;
-
-    // std::vector<float> asset_aspect_ratios;
-    // std::vector<int> asset_num_themes;
 
     b->write_int(use_procgen_background);
     b->write_int(background_index);
@@ -1236,16 +1368,6 @@ void BasicAbstractGame::deserialize(ReadBuffer *b) {
     // we don't want to serialize a bunch of QImages
     // for now we only support games that don't require storing these assets
     fassert(!options.use_generated_assets);
-
-    // when restoring state (to the same game type) with generated assets disabled, these data structures contain cached
-    // asset data, and missing data will be filled in the same way in all environments
-//     std::vector<std::shared_ptr<QImage>> basic_assets;
-//     std::vector<std::shared_ptr<QImage>> basic_reflections;
-    // main_bg_images_ptr is set in game_init for all supported games, so it should always be the same
-//     std::vector<std::shared_ptr<QImage>> *main_bg_images_ptr;
-
-    // std::vector<float> asset_aspect_ratios;
-    // std::vector<int> asset_num_themes;
 
     use_procgen_background = b->read_int();
     background_index = b->read_int();

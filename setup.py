@@ -103,9 +103,8 @@ setup(
     ext_modules=[DummyExtension()],
     cmdclass={"build_ext": custom_build_ext},
 
-    author="OpenAI",
-    description="Procedurally Generated Game-Like RL Environments",
+    author="ARL",
+    description="Procedurally Generated Game-Like RL Environments for OOD evaluation",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/openai/procgen",
 )
