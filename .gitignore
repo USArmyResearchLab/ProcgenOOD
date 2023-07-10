@@ -104,4 +104,6 @@ venv.bak/
 .mypy_cache/
 
 .envrc
-.build/
+.build/.idea/
+.vscode/
+.idea/
