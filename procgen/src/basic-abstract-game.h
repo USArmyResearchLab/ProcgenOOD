@@ -12,6 +12,7 @@ Base game class used by all currently existing games
 #include "game.h"
 #include "grid.h"
 #include "cpp-utils.h"
+#include <iostream> 
 
 class BasicAbstractGame : public Game {
   public:
@@ -111,6 +112,9 @@ class BasicAbstractGame : public Game {
     bool agent_has_collision();
     void reposition_agent();
 
+    // Added for generalization testing -------------------------------------------// 
+    void choose_random_theme_eval(const std::shared_ptr<Entity> &ent); 
+
   protected:
     std::shared_ptr<Entity> agent;
     std::vector<std::shared_ptr<Entity>> entities;
@@ -157,6 +161,9 @@ class BasicAbstractGame : public Game {
     float y_off = 0.0f;
     float visibility = 0.0f;
     float min_visibility = 0.0f;
+
+    // Added for generalization testing -------------------------------------------// 
+    int num_eval_themes = 0; 
 
   private:
     Grid<int> grid;

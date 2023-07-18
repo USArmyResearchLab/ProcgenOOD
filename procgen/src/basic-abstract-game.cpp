@@ -1037,7 +1037,17 @@ void BasicAbstractGame::fit_aspect_ratio(const std::shared_ptr<Entity> &ent) {
 
 void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) {
     initialize_asset_if_necessary(ent->image_type);
-    ent->image_theme = rand_gen.randn(asset_num_themes[ent->image_type]);
+    std::cout << "image type: " << ent->image_type << ", num_themes: " << asset_num_themes[ent->image_type] << std::endl;  
+    ent->image_theme = rand_gen.randn(asset_num_themes[ent->image_type] - num_eval_themes);
+}
+void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &ent) {
+    initialize_asset_if_necessary(ent->image_type);
+    if (num_eval_themes > 0){
+        ent->image_theme = rand_gen.randn(num_eval_themes) + asset_num_themes[ent->image_type];
+    } else {
+        // if there are no eval themes, just choose a random theme like normal 
+        ent->image_theme = rand_gen.randn(asset_num_themes[ent->image_type]);
+    }
 }
 
 void BasicAbstractGame::choose_step_random_theme(const std::shared_ptr<Entity> &ent) {

@@ -429,6 +429,7 @@ class CoinRun : public BasicAbstractGame {
             background_index = 0;
         } else {
             choose_random_theme(agent);
+            std::cout << "NUM_GROUND_THEMES: " << NUM_GROUND_THEMES << std::endl; 
             wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
         }
 
@@ -442,6 +443,10 @@ class CoinRun : public BasicAbstractGame {
 
         init_floor_and_walls();
         generate_coin_to_the_right();
+    }
+
+    int randn(int high){
+        
     }
 
     bool can_support(int obj) {
