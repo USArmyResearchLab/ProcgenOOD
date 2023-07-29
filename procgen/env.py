@@ -82,7 +82,10 @@ class BaseProcgenEnv(CEnv):
         resource_root=None,
         num_threads=4,
         render_mode=None,
+        eval_env=False,
     ):
+        self.eval_env = eval_env
+
         if resource_root is None:
             resource_root = os.path.join(SCRIPT_DIR, "data", "assets") + os.sep
             assert os.path.exists(resource_root)
@@ -118,6 +121,7 @@ class BaseProcgenEnv(CEnv):
                 "rand_seed": rand_seed,
                 "num_threads": num_threads,
                 "render_human": render_human,
+                "eval_env": eval_env,
                 # these will only be used the first time an environment is created in a process
                 "resource_root": resource_root,
             }

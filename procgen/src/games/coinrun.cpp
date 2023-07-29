@@ -423,13 +423,15 @@ class CoinRun : public BasicAbstractGame {
         has_support = false;
         facing_right = true;
 
+        // std::cout << "game_reset eval_env = " << this->eval_env << std::endl;
+
         if (options.distribution_mode == EasyMode) {
             agent->image_theme = 0;
             wall_theme = 0;
             background_index = 0;
         } else {
             choose_random_theme(agent);
-            std::cout << "NUM_GROUND_THEMES: " << NUM_GROUND_THEMES << std::endl; 
+            // std::cout << "NUM_GROUND_THEMES!!!: " << NUM_GROUND_THEMES << std::endl; 
             wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
         }
 

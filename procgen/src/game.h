@@ -72,6 +72,7 @@ class Game {
     int level_seed_high = 1;
     int game_type = 0;
     int game_n = 0;
+    bool eval_env = false;
 
     RandGen level_seed_rand_gen;
     RandGen rand_gen;

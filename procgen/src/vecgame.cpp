@@ -171,6 +171,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     num_envs = _nenvs;
     games.resize(num_envs);
     std::string env_name;
+    bool eval_env = false;
 
     int num_levels = 0;
     int start_level = -1;
@@ -188,6 +189,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     opts.consume_int("num_threads", &num_threads);
     opts.consume_string("resource_root", &resource_root);
     opts.consume_bool("render_human", &render_human);
+    opts.consume_bool("eval_env", &eval_env);
 
     std::call_once(global_init_flag, global_init, rand_seed,
                    resource_root);
@@ -318,6 +320,8 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         games[n]->is_waiting_for_step = false;
         games[n]->parse_options(name, opts);
         games[n]->info_name_to_offset = info_name_to_offset;
+        games[n]->eval_env = eval_env;
+        // std::cout << "1 eval_env = " << games[n]->eval_env << std::endl;
 
         // Auto-selected a fixed_asset_seed if one wasn't specified on
         // construction
@@ -327,6 +331,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         }
 
         games[n]->game_init();
+        // std::cout << "2 eval_env = " << games[n]->eval_env << std::endl;
     }
 }
 
