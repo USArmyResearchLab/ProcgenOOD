@@ -113,6 +113,7 @@ class BasicAbstractGame : public Game {
     void reposition_agent();
 
     // Added for generalization testing -------------------------------------------// 
+    void choose_random_theme_train(const std::shared_ptr<Entity> &ent); 
     void choose_random_theme_eval(const std::shared_ptr<Entity> &ent); 
 
   protected:
@@ -163,7 +164,7 @@ class BasicAbstractGame : public Game {
     float min_visibility = 0.0f;
 
     // Added for generalization testing -------------------------------------------// 
-    int num_eval_themes = 0; 
+    int num_eval_themes = 1; 
 
   private:
     Grid<int> grid;

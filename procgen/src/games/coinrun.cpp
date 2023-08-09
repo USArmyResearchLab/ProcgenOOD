@@ -254,24 +254,54 @@ class CoinRun : public BasicAbstractGame {
         ent->smart_step = true;
         ent->image_type = ENEMY1;
         ent->render_z = 1;
+        // std::cout << "create_enemy eval_env = " << this->eval_env << std::endl;
         choose_random_theme(ent);
     }
 
     void create_crate(int x, int y) {
         auto ent = add_entity(x + .5, y + .5, 0, 0, .5, CRATE);
+        // std::cout << "create_crate eval_env = " << this->eval_env << std::endl;
         choose_random_theme(ent);
     }
 
+    int randn(int high) {
+        if (this->eval_env) {
+            return high - 1; 
+        } else {
+            return rand_gen.randn(high - 1);
+        }
+    }
+
+    // int gen_difficulty(int max_difficulty){
+    //     if (this->eval_env) {
+    //         return max_difficulty - 1; 
+    //     } else {
+    //         return rand_gen.randn(max_difficulty - 1) + 1;
+    //     }
+    // }
+
+    // int gen_danger_type(int num) {
+    //     // reserves last danger type (lava) for eval only 
+    //     if (this->eval_env) {
+    //         return num - 1; 
+    //     } else {
+    //         return rand_gen.randn(num - 1);
+    //     }
+    // }
+
     void generate_coin_to_the_right() {
         int max_difficulty = 3;
-        int dif = rand_gen.randn(max_difficulty) + 1;
+        // int dif = rand_gen.randn(max_difficulty) + 1;  // 1 to 3
+        int dif = randn(max_difficulty) + 1;  // 1 to 2 for training; 3 for eval
 
-        int num_sections = rand_gen.randn(dif) + dif;
+        int num_sections = rand_gen.randn(dif) + dif;  // 1 to 4 for training; 3 to 5 for eval
         int curr_x = 5;
         int curr_y = 1;
 
         int pit_threshold = dif;
-        int danger_type = rand_gen.randn(3);
+        // int danger_type = rand_gen.randn(3);
+        // int danger_type = gen_danger_type(3); 
+        int danger_type = randn(3); 
 
         bool allow_pit = (options.debug_mode & (1 << 1)) == 0;
         bool allow_crate = (options.debug_mode & (1 << 2)) == 0;
@@ -445,10 +475,6 @@ class CoinRun : public BasicAbstractGame {
 
         init_floor_and_walls();
         generate_coin_to_the_right();
-    }
-
-    int randn(int high){
-        
     }
 
     bool can_support(int obj) {
