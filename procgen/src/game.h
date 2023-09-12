@@ -73,6 +73,7 @@ class Game {
     int game_type = 0;
     int game_n = 0;
     bool eval_env = false;
+    std::string eval_holdout_type = "all";
 
     RandGen level_seed_rand_gen;
     RandGen rand_gen;

@@ -83,8 +83,10 @@ class BaseProcgenEnv(CEnv):
         num_threads=4,
         render_mode=None,
         eval_env=False,
+        eval_holdout_type="all",
     ):
         self.eval_env = eval_env
+        self.eval_holdout_type = eval_holdout_type
 
         if resource_root is None:
             resource_root = os.path.join(SCRIPT_DIR, "data", "assets") + os.sep
@@ -122,6 +124,7 @@ class BaseProcgenEnv(CEnv):
                 "num_threads": num_threads,
                 "render_human": render_human,
                 "eval_env": eval_env,
+                "eval_holdout_type": eval_holdout_type,
                 # these will only be used the first time an environment is created in a process
                 "resource_root": resource_root,
             }

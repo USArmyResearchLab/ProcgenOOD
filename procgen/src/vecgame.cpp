@@ -172,6 +172,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     games.resize(num_envs);
     std::string env_name;
     bool eval_env = false;
+    std::string eval_holdout_type; 
 
     int num_levels = 0;
     int start_level = -1;
@@ -190,6 +191,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     opts.consume_string("resource_root", &resource_root);
     opts.consume_bool("render_human", &render_human);
     opts.consume_bool("eval_env", &eval_env);
+    opts.consume_string("eval_holdout_type", &eval_holdout_type);
 
     std::call_once(global_init_flag, global_init, rand_seed,
                    resource_root);
