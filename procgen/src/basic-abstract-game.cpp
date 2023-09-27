@@ -3,6 +3,8 @@
 #include "assetgen.h"
 #include "qt-utils.h"
 
+#include <algorithm> 
+
 const float MAXVTHETA = 15 * PI / 180;
 const float MIXRATEROT = 0.5f;
 
@@ -755,6 +757,29 @@ void BasicAbstractGame::erase_if_needed() {
     }
 }
 
+// Version of rand_gen.randn that returns the last value when eval_env is true. 
+// This is used for categorical sampling, and assumes a relatively small number of categories.
+int BasicAbstractGame::randn(int high) {
+    if (this->eval_env) {
+        int num_withhold = std::max(high / 10, 1);
+        return high - rand_gen.randn(num_withhold) - 1; 
+    } else {
+        return rand_gen.randn(high - 1);
+    }
+}
+
+// Like the above method, but only withholds the last value when eval_env is true AND 
+// the provided var_type is the same as the eval_holdout_type (or eval_holdout_type is "all"). 
+int BasicAbstractGame::randn_type_switch(int high, std::string var_type) {
+    if (eval_holdout_type == "all" || eval_holdout_type == var_type) {
+        // Use special sampling here 
+        return randn(high); 
+    } else {
+        // Use default sampling here 
+        return rand_gen.randn(high);
+    }
+}
+
 void BasicAbstractGame::game_reset() {
     choose_world_dim();
     fassert(main_width > 0 && main_height > 0);
@@ -764,7 +789,9 @@ void BasicAbstractGame::game_reset() {
     grid_size = main_width * main_height;
     grid.resize(main_width, main_height);
 
-    background_index = rand_gen.randn((int)(main_bg_images_ptr->size()));
+    int num_backgrounds = (int)(main_bg_images_ptr->size()); 
+    background_index = randn_type_switch(num_backgrounds, "background");
+    // std::cout << "Eval env = " << eval_env << ", Background index: " << background_index << std::endl; 
 
     AssetGen bggen(&rand_gen);
 
@@ -1036,7 +1063,7 @@ void BasicAbstractGame::fit_aspect_ratio(const std::shared_ptr<Entity> &ent) {
 }
 
 void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) {
-    /* Dispatch method for choosing a random theme. */
+    // Dispatch method for choosing a random theme 
     if (eval_env) {
         choose_random_theme_eval(ent);
     } else {
@@ -1055,7 +1082,6 @@ void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> 
 void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &ent) {
     initialize_asset_if_necessary(ent->image_type);
     if (num_eval_themes > 0){
-        std::cout << "num_eval_themes: " << num_eval_themes << std::endl;
         ent->image_theme = rand_gen.randn(num_eval_themes) + asset_num_themes[ent->image_type] - num_eval_themes;
     } else {
         // if there are no eval themes, just choose a random theme like normal 

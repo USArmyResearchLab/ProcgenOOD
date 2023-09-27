@@ -264,44 +264,26 @@ class CoinRun : public BasicAbstractGame {
         choose_random_theme(ent);
     }
 
-    int randn(int high) {
-        if (this->eval_env) {
-            return high - 1; 
+    // reserves last danger type (lava) for eval only, unless using another specific type 
+    int gen_danger_type(int num) {
+        if (this->eval_holdout_type != "all" || this->eval_holdout_type == "danger") {
+            return rand_gen.randn(num);
         } else {
-            return rand_gen.randn(high - 1);
+            return randn(num);
         }
     }
 
-    // int gen_difficulty(int max_difficulty){
-    //     if (this->eval_env) {
-    //         return max_difficulty - 1; 
-    //     } else {
-    //         return rand_gen.randn(max_difficulty - 1) + 1;
-    //     }
-    // }
-
-    // int gen_danger_type(int num) {
-    //     // reserves last danger type (lava) for eval only 
-    //     if (this->eval_env) {
-    //         return num - 1; 
-    //     } else {
-    //         return rand_gen.randn(num - 1);
-    //     }
-    // }
 
     void generate_coin_to_the_right() {
         int max_difficulty = 3;
-        // int dif = rand_gen.randn(max_difficulty) + 1;  // 1 to 3
-        int dif = randn(max_difficulty) + 1;  // 1 to 2 for training; 3 for eval
+        int dif = randn_type_switch(max_difficulty) + 1;  // 1 to 2 for training; 3 for eval
 
         int num_sections = rand_gen.randn(dif) + dif;  // 1 to 4 for training; 3 to 5 for eval
         int curr_x = 5;
         int curr_y = 1;
 
         int pit_threshold = dif;
-        // int danger_type = rand_gen.randn(3);
-        // int danger_type = gen_danger_type(3); 
-        int danger_type = randn(3); 
+        int danger_type = randn_type_switch(3, "danger"); 
 
         bool allow_pit = (options.debug_mode & (1 << 1)) == 0;
         bool allow_crate = (options.debug_mode & (1 << 2)) == 0;

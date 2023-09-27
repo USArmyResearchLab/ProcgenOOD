@@ -323,6 +323,7 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         games[n]->parse_options(name, opts);
         games[n]->info_name_to_offset = info_name_to_offset;
         games[n]->eval_env = eval_env;
+        games[n]->eval_holdout_type = eval_holdout_type;
         // std::cout << "1 eval_env = " << games[n]->eval_env << std::endl;
 
         // Auto-selected a fixed_asset_seed if one wasn't specified on

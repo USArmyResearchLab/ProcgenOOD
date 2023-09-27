@@ -116,6 +116,10 @@ class BasicAbstractGame : public Game {
     void choose_random_theme_train(const std::shared_ptr<Entity> &ent); 
     void choose_random_theme_eval(const std::shared_ptr<Entity> &ent); 
 
+    // Random generation methods --------------------------------------------------//
+    int randn(int high); 
+    int randn_type_switch(int high, std::string var_type = ""); 
+
   protected:
     std::shared_ptr<Entity> agent;
     std::vector<std::shared_ptr<Entity>> entities;
