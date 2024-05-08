@@ -169,7 +169,8 @@ class Climber : public BasicAbstractGame {
     }
 
     void generate_platforms() {
-        int difficulty = rand_gen.randn(3);
+        int max_difficulty = 3; 
+        int difficulty = randn_type_switch(3);
         int min_platforms = difficulty * difficulty + 1;
         int max_platforms = (difficulty + 1) * (difficulty + 1) + 1;
         int num_platforms = rand_gen.randn(max_platforms - min_platforms + 1) + min_platforms;
@@ -248,7 +249,7 @@ class Climber : public BasicAbstractGame {
         agent->x = 1 + agent->rx;
         agent->y = 1 + agent->ry;
         choose_random_theme(agent);
-        wall_theme = rand_gen.randn(NUM_WALL_THEMES);
+        wall_theme = randn_type_switch(NUM_WALL_THEMES, "background");
 
         init_floor_and_walls();
         generate_platforms();
