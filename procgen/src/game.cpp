@@ -1,4 +1,4 @@
-
+#include <iostream>
 #include "game.h"
 #include "vecoptions.h"
 
@@ -227,6 +227,13 @@ void Game::serialize(WriteBuffer *b) {
     // std::vector<void *> info_bufs;
     // float *reward_ptr = nullptr;
     // uint8_t *first_ptr = nullptr;
+
+    // OOD variables
+    b->write_string(eval_holdout_type);
+    b->write_string(train_holdout_type);
+    b->write_float(eval_holdout_frac);
+    b->write_float(train_holdout_frac);
+    b->write_string(holdout_sampling_mode);
 }
 
 void Game::deserialize(ReadBuffer *b) {
@@ -276,4 +283,11 @@ void Game::deserialize(ReadBuffer *b) {
 
     cur_time = b->read_int();
     is_waiting_for_step = b->read_int();
+
+    // OOD variables
+    eval_holdout_type = b->read_string();
+    train_holdout_type = b->read_string();
+    eval_holdout_frac = b->read_float();
+    train_holdout_frac = b->read_float();
+    holdout_sampling_mode = b->read_string();
 }

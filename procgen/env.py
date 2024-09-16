@@ -50,6 +50,17 @@ DISTRIBUTION_MODE_DICT = {
     "exploration": 20,
 }
 
+#################################################
+
+ENV_NAMES_OOD = [
+    "coinrun", 
+    "climber", 
+    # Add more as they are finished
+]
+
+VAR_HOLDOUT_TYPES = ["none", "all", "background", "danger"]
+HOLDOUT_SAMPLING_TYPES = ["extrapolate", "interpolate"]
+
 
 def create_random_seed():
     rand_seed = random.SystemRandom().randint(0, 2 ** 31 - 1)
@@ -83,10 +94,28 @@ class BaseProcgenEnv(CEnv):
         num_threads=4,
         render_mode=None,
         eval_env=False,
-        eval_holdout_type="all",
+        eval_holdout_type="none",
+        train_holdout_type=None,
+        eval_holdout_frac=0.1,
+        train_holdout_frac=None,
+        holdout_sampling_mode="extrapolate"
     ):
         self.eval_env = eval_env
         self.eval_holdout_type = eval_holdout_type
+        self.holdout_sampling_mode = holdout_sampling_mode
+        
+        # If train_holdout_{type,frac} are not provided, use eval_holdout_{type,frac} 
+        train_holdout_type = eval_holdout_type if train_holdout_type is None else train_holdout_type
+        self.train_holdout_type = train_holdout_type
+        train_holdout_frac = eval_holdout_frac if train_holdout_frac is None else train_holdout_frac
+        self.train_holdout_frac = train_holdout_frac
+        
+        assert self.train_holdout_type in VAR_HOLDOUT_TYPES
+        assert self.eval_holdout_type in VAR_HOLDOUT_TYPES
+        assert self.holdout_sampling_mode in HOLDOUT_SAMPLING_TYPES
+
+        if train_holdout_type != "none" or eval_holdout_type != "none":
+            assert env_name in ENV_NAMES_OOD, f"env_name {env_name} is not supported for OOD holdout"
 
         if resource_root is None:
             resource_root = os.path.join(SCRIPT_DIR, "data", "assets") + os.sep
@@ -123,8 +152,15 @@ class BaseProcgenEnv(CEnv):
                 "rand_seed": rand_seed,
                 "num_threads": num_threads,
                 "render_human": render_human,
+
+                # Custom settings for holding out variables OOD 
                 "eval_env": eval_env,
                 "eval_holdout_type": eval_holdout_type,
+                "holdout_sampling_mode": holdout_sampling_mode,
+                "train_holdout_type": train_holdout_type,
+                "eval_holdout_frac": eval_holdout_frac,
+                "train_holdout_frac": train_holdout_frac,
+
                 # these will only be used the first time an environment is created in a process
                 "resource_root": resource_root,
             }

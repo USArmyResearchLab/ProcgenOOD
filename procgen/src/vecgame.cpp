@@ -173,6 +173,10 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     std::string env_name;
     bool eval_env = false;
     std::string eval_holdout_type; 
+    std::string train_holdout_type; 
+    std::string holdout_sampling_mode = "extrapolate";
+    float eval_holdout_frac = 0.0f;
+    float train_holdout_frac = 0.0f;
 
     int num_levels = 0;
     int start_level = -1;
@@ -192,6 +196,10 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     opts.consume_bool("render_human", &render_human);
     opts.consume_bool("eval_env", &eval_env);
     opts.consume_string("eval_holdout_type", &eval_holdout_type);
+    opts.consume_string("train_holdout_type", &train_holdout_type);
+    opts.consume_float("eval_holdout_frac", &eval_holdout_frac);
+    opts.consume_float("train_holdout_frac", &train_holdout_frac);
+    opts.consume_string("holdout_sampling_mode", &holdout_sampling_mode);
 
     std::call_once(global_init_flag, global_init, rand_seed,
                    resource_root);
@@ -324,6 +332,10 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         games[n]->info_name_to_offset = info_name_to_offset;
         games[n]->eval_env = eval_env;
         games[n]->eval_holdout_type = eval_holdout_type;
+        games[n]->holdout_sampling_mode = holdout_sampling_mode;
+        games[n]->train_holdout_type = train_holdout_type;
+        games[n]->eval_holdout_frac = eval_holdout_frac;
+        games[n]->train_holdout_frac = train_holdout_frac;
         // std::cout << "1 eval_env = " << games[n]->eval_env << std::endl;
 
         // Auto-selected a fixed_asset_seed if one wasn't specified on

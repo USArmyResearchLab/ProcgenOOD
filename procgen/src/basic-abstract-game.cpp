@@ -1074,8 +1074,8 @@ void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> 
     initialize_asset_if_necessary(ent->image_type);
     int num_train_themes = asset_num_themes[ent->image_type] - num_eval_themes;
     if (num_train_themes <= 0) {
-        std::cout << "WARNING! num_train_themes <= 0, setting to 1" << std::endl;
-        num_train_themes = 1;
+        throw std::invalid_argument("ERROR: num_train_themes <= 0. Check that num_eval_themes \
+        is less than the total number of themes.");
     }
     ent->image_theme = rand_gen.randn(num_train_themes);
 }
@@ -1224,9 +1224,9 @@ void BasicAbstractGame::serialize(WriteBuffer *b) {
 
     fassert(!options.use_generated_assets);
     // these will be cleared and re-generated instead of being saved
-//     std::vector<std::shared_ptr<QImage>> basic_assets;
-//     std::vector<std::shared_ptr<QImage>> basic_reflections;
-//     std::vector<std::shared_ptr<QImage>> *main_bg_images_ptr;
+    //     std::vector<std::shared_ptr<QImage>> basic_assets;
+    //     std::vector<std::shared_ptr<QImage>> basic_reflections;
+    //     std::vector<std::shared_ptr<QImage>> *main_bg_images_ptr;
 
     // std::vector<float> asset_aspect_ratios;
     // std::vector<int> asset_num_themes;
@@ -1269,6 +1269,9 @@ void BasicAbstractGame::serialize(WriteBuffer *b) {
     b->write_float(min_visibility);
 
     grid.serialize(b);
+
+    // OOD variables 
+    b->write_int(num_eval_themes);
 }
 
 void BasicAbstractGame::deserialize(ReadBuffer *b) {
@@ -1288,10 +1291,10 @@ void BasicAbstractGame::deserialize(ReadBuffer *b) {
 
     // when restoring state (to the same game type) with generated assets disabled, these data structures contain cached
     // asset data, and missing data will be filled in the same way in all environments
-//     std::vector<std::shared_ptr<QImage>> basic_assets;
-//     std::vector<std::shared_ptr<QImage>> basic_reflections;
+    //     std::vector<std::shared_ptr<QImage>> basic_assets;
+    //     std::vector<std::shared_ptr<QImage>> basic_reflections;
     // main_bg_images_ptr is set in game_init for all supported games, so it should always be the same
-//     std::vector<std::shared_ptr<QImage>> *main_bg_images_ptr;
+    //     std::vector<std::shared_ptr<QImage>> *main_bg_images_ptr;
 
     // std::vector<float> asset_aspect_ratios;
     // std::vector<int> asset_num_themes;
@@ -1334,4 +1337,7 @@ void BasicAbstractGame::deserialize(ReadBuffer *b) {
     min_visibility = b->read_float();
 
     grid.deserialize(b);
+
+    // OOD variables 
+    num_eval_themes = b->read_int();
 }

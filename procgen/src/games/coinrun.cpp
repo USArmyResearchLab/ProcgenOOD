@@ -444,7 +444,7 @@ class CoinRun : public BasicAbstractGame {
         } else {
             choose_random_theme(agent);
             // std::cout << "NUM_GROUND_THEMES!!!: " << NUM_GROUND_THEMES << std::endl; 
-            wall_theme = randn_type_switch(NUM_WALL_THEMES, "background");
+            wall_theme = randn_type_switch(NUM_GROUND_THEMES, "background");
         }
 
         agent->rx = .5;
