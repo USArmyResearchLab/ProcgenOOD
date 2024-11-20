@@ -170,7 +170,7 @@ class Climber : public BasicAbstractGame {
 
     void generate_platforms() {
         int max_difficulty = 3; 
-        int difficulty = randn_type_switch(3);
+        int difficulty = randn_type_switch(3, "platform");
         int min_platforms = difficulty * difficulty + 1;
         int max_platforms = (difficulty + 1) * (difficulty + 1) + 1;
         int num_platforms = rand_gen.randn(max_platforms - min_platforms + 1) + min_platforms;

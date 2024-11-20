@@ -53,6 +53,13 @@ BasicAbstractGame::~BasicAbstractGame() {
     }
 }
 
+void BasicAbstractGame::_print_withheld(int total, std::string var_type) {
+    int num_withheld = get_num_withhold(total, var_type);
+    printf("Eval env = %d\n", eval_env); 
+    printf("Total %s: %d\n", var_type.c_str(), total);
+    printf("Total %s withheld: %d\n", var_type.c_str(), num_withheld);
+}
+
 void BasicAbstractGame::game_init() {
     if (!options.use_generated_assets) {
         load_background_images();
@@ -76,6 +83,16 @@ void BasicAbstractGame::game_init() {
     basic_reflections.resize(USE_ASSET_THRESHOLD * MAX_IMAGE_THEMES, nullptr);
     asset_aspect_ratios.resize(USE_ASSET_THRESHOLD * MAX_IMAGE_THEMES, 0);
     asset_num_themes.resize(USE_ASSET_THRESHOLD, 0);
+
+    // TODO: currently using debug mode to print this information.
+    if (options.debug_mode == 1) { 
+        printf("Game initialized\n");
+        
+        // Print the number of total and withheld assets for each variable to debug 
+        _print_withheld((int)(main_bg_images_ptr->size()), "background");
+        _print_withheld(3, "danger"); // 3 only for coinrun..... 
+        // _print_withheld((int)(basic_assets.size()), "asset");
+    }
 }
 
 void BasicAbstractGame::initialize_asset_if_necessary(int img_idx) {
@@ -757,28 +774,47 @@ void BasicAbstractGame::erase_if_needed() {
     }
 }
 
-// Version of rand_gen.randn that returns the last value when eval_env is true. 
-// This is used for categorical sampling, and assumes a relatively small number of categories.
+int BasicAbstractGame::get_num_withhold(int high, std::string var_type) {
+    if (type_match(var_type)) {
+        if (holdout_frac > 0) {
+            return std::max((int)(high * holdout_frac), 1);
+        }
+    } 
+    return 0;
+}
+
+// Version of rand_gen.randn that uses the appropriate ranges for train and eval holdout fractions.
+// This is used for categorical sampling. 
 int BasicAbstractGame::randn(int high) {
-    if (this->eval_env) {
-        int num_withhold = std::max(high / 10, 1);
-        return high - rand_gen.randn(num_withhold) - 1; 
+    int num_withhold = get_num_withhold(high, "all");
+    if (num_withhold == 0) { 
+        // Early escape if no holdout; avoids complicated modulo logic below 
+        return rand_gen.randn(high); 
+    } 
+    if (this->eval_env) { 
+        int start_idx = high - num_withhold;
+        auto chosen = rand_gen.randn(num_withhold);
+        return start_idx + chosen;
     } else {
-        return rand_gen.randn(high - 1);
+        return rand_gen.randn(std::max(high - num_withhold, 1));
     }
+}
+
+bool BasicAbstractGame::type_match(std::string var_type) {
+    return (holdout_type == "all" || holdout_type == var_type);
 }
 
 // Like the above method, but only withholds the last value when eval_env is true AND 
 // the provided var_type is the same as the eval_holdout_type (or eval_holdout_type is "all"). 
 int BasicAbstractGame::randn_type_switch(int high, std::string var_type) {
-    if (eval_holdout_type == "all" || eval_holdout_type == var_type) {
-        // Use special sampling here 
+    if (type_match(var_type)) { // Use special sampling here 
         return randn(high); 
-    } else {
-        // Use default sampling here 
+    } else {                    // Use default sampling here 
         return rand_gen.randn(high);
     }
 }
+
+
 
 void BasicAbstractGame::game_reset() {
     choose_world_dim();
@@ -1063,6 +1099,20 @@ void BasicAbstractGame::fit_aspect_ratio(const std::shared_ptr<Entity> &ent) {
 }
 
 void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) {
+    // Old basic way of choosing a random theme
+    initialize_asset_if_necessary(ent->image_type);
+    
+    int num_themes = asset_num_themes[ent->image_type];
+    auto theme = rand_gen.randn(num_themes);
+    ent->image_theme = theme;
+
+    if (options.debug_mode >= 2) {
+        printf("Chose theme %d for image type %d, out of %d themes total \n", 
+               theme, ent->image_type, num_themes);
+    }
+}
+
+void BasicAbstractGame::choose_random_theme_switch(const std::shared_ptr<Entity> &ent) {
     // Dispatch method for choosing a random theme 
     if (eval_env) {
         choose_random_theme_eval(ent);
@@ -1072,7 +1122,11 @@ void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) 
 }
 void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> &ent) {
     initialize_asset_if_necessary(ent->image_type);
-    int num_train_themes = asset_num_themes[ent->image_type] - num_eval_themes;
+    
+    float thf = 1 - train_holdout_frac;
+    float theme_frac = asset_num_themes[ent->image_type] * thf; 
+    int num_train_themes = std::max((int)theme_frac, 1);
+
     if (num_train_themes <= 0) {
         throw std::invalid_argument("ERROR: num_train_themes <= 0. Check that num_eval_themes \
         is less than the total number of themes.");
@@ -1081,12 +1135,17 @@ void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> 
 }
 void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &ent) {
     initialize_asset_if_necessary(ent->image_type);
-    if (num_eval_themes > 0){
-        ent->image_theme = rand_gen.randn(num_eval_themes) + asset_num_themes[ent->image_type] - num_eval_themes;
-    } else {
-        // if there are no eval themes, just choose a random theme like normal 
-        ent->image_theme = rand_gen.randn(asset_num_themes[ent->image_type]);
+
+    int num_themes = asset_num_themes[ent->image_type];
+    float ehf = eval_holdout_frac;
+    if (ehf == 0) {
+        ent->image_theme = rand_gen.randn(num_themes);
+        return;
     }
+    float theme_frac = num_themes * ehf; 
+    int num_eval_themes = std::max((int)theme_frac, 1);
+    int start_idx = num_themes - num_eval_themes;
+    ent->image_theme = start_idx + rand_gen.randn(num_eval_themes);
 }
 
 void BasicAbstractGame::choose_step_random_theme(const std::shared_ptr<Entity> &ent) {
@@ -1271,7 +1330,7 @@ void BasicAbstractGame::serialize(WriteBuffer *b) {
     grid.serialize(b);
 
     // OOD variables 
-    b->write_int(num_eval_themes);
+    // b->write_int(num_eval_themes);
 }
 
 void BasicAbstractGame::deserialize(ReadBuffer *b) {
@@ -1339,5 +1398,5 @@ void BasicAbstractGame::deserialize(ReadBuffer *b) {
     grid.deserialize(b);
 
     // OOD variables 
-    num_eval_themes = b->read_int();
+    // num_eval_themes = b->read_int();
 }

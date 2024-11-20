@@ -338,6 +338,14 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         games[n]->train_holdout_frac = train_holdout_frac;
         // std::cout << "1 eval_env = " << games[n]->eval_env << std::endl;
 
+        if (eval_env) {
+            games[n]->holdout_type = eval_holdout_type;
+            games[n]->holdout_frac = eval_holdout_frac;
+        } else {
+            games[n]->holdout_type = train_holdout_type;
+            games[n]->holdout_frac = train_holdout_frac;
+        }
+
         // Auto-selected a fixed_asset_seed if one wasn't specified on
         // construction
         if (games[n]->fixed_asset_seed == 0) {

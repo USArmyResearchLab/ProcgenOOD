@@ -79,6 +79,9 @@ class Game {
         float train_holdout_frac = 0.0f;
         std::string holdout_sampling_mode = "extrapolate"; // extrapolate, interpolate 
 
+        std::string holdout_type = "none";
+        float holdout_frac = 0.0f;
+
         RandGen level_seed_rand_gen;
         RandGen rand_gen;
 
