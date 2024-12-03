@@ -97,7 +97,7 @@ class BaseProcgenEnv(CEnv):
         eval_env=False,
         eval_holdout_type="none",
         train_holdout_type=None,
-        eval_holdout_frac=0.1,
+        eval_holdout_frac=0.0,
         train_holdout_frac=None,
         holdout_sampling_mode="extrapolate"
     ):

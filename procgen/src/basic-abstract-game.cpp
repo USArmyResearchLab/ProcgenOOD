@@ -1132,14 +1132,22 @@ void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> 
         is less than the total number of themes.");
     }
     ent->image_theme = rand_gen.randn(num_train_themes);
+    if (options.debug_mode >= 2) {
+        printf("Train holdout frac is %f; choosing random theme %d for image type %d \n", 
+               train_holdout_frac, ent->image_theme, ent->image_type);
+    }
 }
 void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &ent) {
     initialize_asset_if_necessary(ent->image_type);
 
     int num_themes = asset_num_themes[ent->image_type];
     float ehf = eval_holdout_frac;
-    if (ehf == 0) {
+    if (ehf == 0.0) {
         ent->image_theme = rand_gen.randn(num_themes);
+        if (options.debug_mode >= 2) {
+            printf("Eval holdout frac is 0.0; choosing random theme %d for image type %d \n", 
+                   ent->image_theme, ent->image_type);
+        }
         return;
     }
     float theme_frac = num_themes * ehf; 
