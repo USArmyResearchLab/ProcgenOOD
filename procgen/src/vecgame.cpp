@@ -3,6 +3,10 @@
 #include "vecoptions.h"
 #include "game.h"
 
+#include <unordered_map>
+#include <vector>
+#include <unordered_set> 
+
 const int32_t END_OF_BUFFER = 0xCAFECAFE;
 
 extern void coinrun_old_init(int rand_seed);
@@ -200,6 +204,12 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
     opts.consume_float("eval_holdout_frac", &eval_holdout_frac);
     opts.consume_float("train_holdout_frac", &train_holdout_frac);
     opts.consume_string("holdout_sampling_mode", &holdout_sampling_mode);
+
+    // Map Asset type (integer) to a set of theme indices. 
+    // This allows more flexible selection for inter/extrapolation, 
+    // and could further simplify RNG logic. 
+    std::unordered_map<int, std::unordered_set<int>> asset_idx_map_train;
+    std::unordered_map<int, std::unordered_set<int>> asset_idx_map_eval;
 
     std::call_once(global_init_flag, global_init, rand_seed,
                    resource_root);

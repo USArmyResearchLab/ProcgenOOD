@@ -4,6 +4,7 @@
 #include "qt-utils.h"
 
 #include <algorithm> 
+#include <typeinfo>
 
 const float MAXVTHETA = 15 * PI / 180;
 const float MIXRATEROT = 0.5f;
@@ -85,7 +86,7 @@ void BasicAbstractGame::game_init() {
     asset_num_themes.resize(USE_ASSET_THRESHOLD, 0);
 
     // TODO: currently using debug mode to print this information.
-    if (options.debug_mode == 1) { 
+    if (options.debug_mode >= 1) { 
         printf("Game initialized\n");
         
         // Print the number of total and withheld assets for each variable to debug 
@@ -1107,7 +1108,7 @@ void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) 
     ent->image_theme = theme;
 
     if (options.debug_mode >= 2) {
-        printf("Chose theme %d for image type %d, out of %d themes total \n", 
+        printf("Chose theme %d for image type %d, out of %d themes total, using DEFAULT RNG function.\n", 
                theme, ent->image_type, num_themes);
     }
 }
@@ -1123,15 +1124,27 @@ void BasicAbstractGame::choose_random_theme_switch(const std::shared_ptr<Entity>
 void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> &ent) {
     initialize_asset_if_necessary(ent->image_type);
     
-    float thf = 1 - train_holdout_frac;
-    float theme_frac = asset_num_themes[ent->image_type] * thf; 
-    int num_train_themes = std::max((int)theme_frac, 1);
-
-    if (num_train_themes <= 0) {
-        throw std::invalid_argument("ERROR: num_train_themes <= 0. Check that num_eval_themes \
-        is less than the total number of themes.");
+    int num_themes = asset_num_themes[ent->image_type];
+    if (train_holdout_frac == 0.0) {
+        ent->image_theme = rand_gen.randn(num_themes);
+        if (options.debug_mode >= 2) {
+            printf("Train holdout frac is 0.0; choosing random theme %d for image type %d \n", 
+                   ent->image_theme, ent->image_type);
+        }
+        return;
     }
+
+    float ithf = 1 - train_holdout_frac;
+    float theme_frac = num_themes * ithf; 
+    int num_train_themes = std::max((int)theme_frac, 1);  // Ensure at least one theme is chosen
     ent->image_theme = rand_gen.randn(num_train_themes);
+
+    if (num_train_themes == num_themes) {
+        throw std::invalid_argument(
+            "ERROR: num_train_themes == total number of themes, \
+             while train_holdout_frac > 0.0; this is not allowed. \n"
+        );
+    }
     if (options.debug_mode >= 2) {
         printf("Train holdout frac is %f; choosing random theme %d for image type %d \n", 
                train_holdout_frac, ent->image_theme, ent->image_type);
@@ -1141,8 +1154,7 @@ void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &
     initialize_asset_if_necessary(ent->image_type);
 
     int num_themes = asset_num_themes[ent->image_type];
-    float ehf = eval_holdout_frac;
-    if (ehf == 0.0) {
+    if (eval_holdout_frac == 0.0) {
         ent->image_theme = rand_gen.randn(num_themes);
         if (options.debug_mode >= 2) {
             printf("Eval holdout frac is 0.0; choosing random theme %d for image type %d \n", 
@@ -1150,6 +1162,7 @@ void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &
         }
         return;
     }
+    float ehf = eval_holdout_frac;
     float theme_frac = num_themes * ehf; 
     int num_eval_themes = std::max((int)theme_frac, 1);
     int start_idx = num_themes - num_eval_themes;
