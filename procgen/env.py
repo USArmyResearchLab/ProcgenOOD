@@ -58,7 +58,7 @@ ENV_NAMES_OOD = [
     # Add more as they are finished
 ]
 
-VAR_HOLDOUT_TYPES = ["none", "all", "background", "danger", 
+VAR_HOLDOUT_TYPES = ["none", "all", "background", 
                      "platform", "enemy", "agent"]
 HOLDOUT_SAMPLING_TYPES = ["extrapolate", "interpolate"]
 

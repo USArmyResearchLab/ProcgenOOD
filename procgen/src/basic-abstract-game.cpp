@@ -91,7 +91,6 @@ void BasicAbstractGame::game_init() {
         
         // Print the number of total and withheld assets for each variable to debug 
         _print_withheld((int)(main_bg_images_ptr->size()), "background");
-        _print_withheld(3, "danger"); // 3 only for coinrun..... 
         // _print_withheld((int)(basic_assets.size()), "asset");
     }
 }
@@ -1107,10 +1106,10 @@ void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) 
     auto theme = rand_gen.randn(num_themes);
     ent->image_theme = theme;
 
-    if (options.debug_mode >= 2) {
-        printf("Chose theme %d for image type %d, out of %d themes total, using DEFAULT RNG function.\n", 
-               theme, ent->image_type, num_themes);
-    }
+    // if (options.debug_mode >= 2) {
+    //     printf("Chose theme %d for image type %d, out of %d themes total, using DEFAULT RNG function.\n", 
+    //            theme, ent->image_type, num_themes);
+    // }
 }
 
 void BasicAbstractGame::choose_random_theme_switch(const std::shared_ptr<Entity> &ent) {

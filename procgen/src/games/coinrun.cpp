@@ -277,11 +277,7 @@ class CoinRun : public BasicAbstractGame {
         int curr_y = 1;
 
         int pit_threshold = dif;
-        int danger_type = randn_type_switch(3, "danger"); 
-
-        bool allow_pit = (options.debug_mode & (1 << 1)) == 0;
-        bool allow_crate = (options.debug_mode & (1 << 2)) == 0;
-        bool allow_dy = (options.debug_mode & (1 << 3)) == 0;
+        int danger_type = rand_gen.randn(3); 
 
         int w = main_width;
 
@@ -291,6 +287,9 @@ class CoinRun : public BasicAbstractGame {
         int max_dy = (_max_dy - .5);
         int max_dx = (_max_dx - .5);
 
+        bool allow_pit      = true; 
+        bool allow_crate    = true;
+        bool allow_dy       = true;
         bool allow_monsters = true;
 
         if (options.distribution_mode == EasyMode) {
