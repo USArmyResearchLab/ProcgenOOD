@@ -273,6 +273,17 @@ class CoinRun : public BasicAbstractGame {
         int dif = randn_type_switch(max_difficulty, "platform") + 1;  // 1 to 2 for training; 3 for eval
 
         int num_sections = rand_gen.randn(dif) + dif;  // 1 to 4 for training; 3 to 5 for eval
+
+        if (this->eval_env) {
+            assert(1 <= dif <= 3);
+            assert(3 <= num_sections <= 5);
+        } else {
+            assert(1 <= dif <= 2);
+            assert(1 <= num_sections <= 4);
+        }
+
+        // printf("eval_env = %d, dif = %d, num_sections = %d\n", this->eval_env, dif, num_sections);
+
         int curr_x = 5;
         int curr_y = 1;
 
