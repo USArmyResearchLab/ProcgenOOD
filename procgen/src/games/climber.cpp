@@ -248,7 +248,11 @@ class Climber : public BasicAbstractGame {
 
         agent->x = 1 + agent->rx;
         agent->y = 1 + agent->ry;
-        choose_random_theme(agent);
+        if (holdout_type == "all" || holdout_type == "agent") {
+            choose_random_theme_switch(agent);
+        } else {
+            choose_random_theme(agent);
+        }
         wall_theme = randn_type_switch(NUM_WALL_THEMES, "background");
 
         init_floor_and_walls();
