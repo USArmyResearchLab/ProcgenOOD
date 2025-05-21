@@ -1112,6 +1112,15 @@ void BasicAbstractGame::choose_random_theme(const std::shared_ptr<Entity> &ent) 
     // }
 }
 
+void BasicAbstractGame::choose_random_theme_type_match(const std::shared_ptr<Entity> &ent, const std::string &var_type) {
+    // Choose a random theme based on the type of variable and train/eval environment 
+    if (type_match(var_type)) {
+        choose_random_theme_switch(ent);
+    } else {
+        choose_random_theme(ent);
+    }
+}
+
 void BasicAbstractGame::choose_random_theme_switch(const std::shared_ptr<Entity> &ent) {
     // Dispatch method for choosing a random theme 
     if (eval_env) {

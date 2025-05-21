@@ -117,6 +117,7 @@ class BasicAbstractGame : public Game {
         void choose_random_theme_switch(const std::shared_ptr<Entity> &ent);
         void choose_random_theme_train(const std::shared_ptr<Entity> &ent); 
         void choose_random_theme_eval(const std::shared_ptr<Entity> &ent); 
+        void choose_random_theme_type_match(const std::shared_ptr<Entity> &ent, const std::string &var_type); 
 
         // Random generation methods --------------------------------------------------//
         int get_num_withhold(int high, std::string var_type = "");

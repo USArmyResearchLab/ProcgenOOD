@@ -89,11 +89,7 @@ class BigFish : public BasicAbstractGame {
             float ent_x = moves_right ? -1 * ent_r : main_width + ent_r;
             int type = FISH;
             auto ent = add_entity(ent_x, ent_y, ent_vx, 0, ent_r, type);
-            if (holdout_type == "all" || holdout_type == "enemy") {
-                choose_random_theme_switch(ent);
-            } else {
-                choose_random_theme(ent);
-            }
+            choose_random_theme_type_match(ent, "enemy");
             match_aspect_ratio(ent);
             ent->is_reflected = !moves_right;
         }

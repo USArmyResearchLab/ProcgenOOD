@@ -255,11 +255,7 @@ class CoinRun : public BasicAbstractGame {
         ent->image_type = ENEMY1;
         ent->render_z = 1;
         // std::cout << "create_enemy eval_env = " << this->eval_env << std::endl;
-        if (holdout_type == "all" || holdout_type == "enemy") {
-            choose_random_theme_switch(ent);
-        } else {
-            choose_random_theme(ent);
-        }
+        choose_random_theme_type_match(ent, "enemy");
     }
 
     void create_crate(int x, int y) {
@@ -437,15 +433,13 @@ class CoinRun : public BasicAbstractGame {
 
         // std::cout << "game_reset eval_env = " << this->eval_env << std::endl;
         if (options.distribution_mode == EasyMode) {
+            assert(false);
             agent->image_theme = 0;
             wall_theme = 0;
             background_index = 0;
         } else {
-            if (holdout_type == "all" || holdout_type == "agent") {
-                choose_random_theme_switch(agent);
-            } else {
-                choose_random_theme(agent);
-            }
+            choose_random_theme_type_match(agent, "agent");
+            
             // std::cout << "NUM_GROUND_THEMES!!!: " << NUM_GROUND_THEMES << std::endl; 
             // wall_theme = randn_type_switch(NUM_GROUND_THEMES, "background");
             wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
