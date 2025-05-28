@@ -56,10 +56,19 @@ ENV_NAMES_OOD = [
     "bigfish",
     "bossfight",
     "caveflyer",
-    # "chaser",
+    # "chaser",     # not currently supported 
     "climber",
     "coinrun",
     "dodgeball",
+    "fruitbot",
+    "heist",
+    "jumper",
+    "leaper",
+    "maze",
+    "miner",
+    "ninja",
+    # "plunder",    # not currently supported 
+    "starpilot",
     # Add more as they are finished
 ]
 

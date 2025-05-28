@@ -147,7 +147,7 @@ class LeaperGame : public BasicAbstractGame {
         bottom_road_y = choose_extra_space() + 1;
 
         int max_diff = options.distribution_mode == EasyMode ? 3 : 4;
-        int difficulty = rand_gen.randn(max_diff + 1);
+        int difficulty = randn_type_switch(max_diff + 1, "platform"); 
 
         // half the time we add an extra lane to either roads or water
         int extra_lane_option = options.distribution_mode == EasyMode ? 0 : rand_gen.randn(4);

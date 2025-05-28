@@ -330,7 +330,7 @@ class Ninja : public BasicAbstractGame {
         }
 
         int max_difficulty = 3;
-        int difficulty = rand_gen.randn(max_difficulty) + 1;
+        int difficulty = randn_type_switch(max_difficulty, "platform") + 1;  // 1 to 2 for training; 3 for eval
 
         last_fire_time = 0;
 
