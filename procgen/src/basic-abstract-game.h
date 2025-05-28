@@ -112,8 +112,11 @@ class BasicAbstractGame : public Game {
         bool agent_has_collision();
         void reposition_agent();
 
+        void initialize_asset_if_necessary(int img_idx);
+
         // Added for generalization testing -------------------------------------------// 
         bool type_match(std::string var_type); 
+        int get_random_theme_type_match(const std::shared_ptr<Entity> &ent, const std::string &var_type); 
         void choose_random_theme_switch(const std::shared_ptr<Entity> &ent);
         void choose_random_theme_train(const std::shared_ptr<Entity> &ent); 
         void choose_random_theme_eval(const std::shared_ptr<Entity> &ent); 
@@ -180,7 +183,6 @@ class BasicAbstractGame : public Game {
         Grid<int> grid;
 
         QImage *lookup_asset(int img_idx, bool is_reflected = false);
-        void initialize_asset_if_necessary(int img_idx);
         void prepare_for_drawing(float rect_height);
         void draw_background(QPainter &p, const QRect &rect);
         void draw_entity(QPainter &p, const std::shared_ptr<Entity> &to_draw);

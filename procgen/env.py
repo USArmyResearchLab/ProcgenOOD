@@ -53,8 +53,13 @@ DISTRIBUTION_MODE_DICT = {
 #################################################
 
 ENV_NAMES_OOD = [
-    "coinrun", 
-    "climber", 
+    "bigfish",
+    "bossfight",
+    "caveflyer",
+    # "chaser",
+    "climber",
+    "coinrun",
+    "dodgeball",
     # Add more as they are finished
 ]
 

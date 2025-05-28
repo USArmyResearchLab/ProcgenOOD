@@ -1121,6 +1121,16 @@ void BasicAbstractGame::choose_random_theme_type_match(const std::shared_ptr<Ent
     }
 }
 
+int BasicAbstractGame::get_random_theme_type_match(const std::shared_ptr<Entity> &ent, const std::string &var_type) {
+    // Get a random theme integer based on the type of variable and train/eval environment. 
+    // Useful for setting multiple entities to the same theme. 
+    if (type_match(var_type)) {
+        return randn_type_switch(asset_num_themes[ent->image_type], var_type);
+    } else {
+        return rand_gen.randn(asset_num_themes[ent->image_type]);
+    }
+}
+
 void BasicAbstractGame::choose_random_theme_switch(const std::shared_ptr<Entity> &ent) {
     // Dispatch method for choosing a random theme 
     if (eval_env) {
@@ -1142,8 +1152,8 @@ void BasicAbstractGame::choose_random_theme_train(const std::shared_ptr<Entity> 
         return;
     }
 
-    float ithf = 1 - train_holdout_frac;
-    float theme_frac = num_themes * ithf; 
+    float inv_frac = 1 - train_holdout_frac;
+    float theme_frac = num_themes * inv_frac; 
     int num_train_themes = std::max((int)theme_frac, 1);  // Ensure at least one theme is chosen
     ent->image_theme = rand_gen.randn(num_train_themes);
 
@@ -1170,8 +1180,7 @@ void BasicAbstractGame::choose_random_theme_eval(const std::shared_ptr<Entity> &
         }
         return;
     }
-    float ehf = eval_holdout_frac;
-    float theme_frac = num_themes * ehf; 
+    float theme_frac = num_themes * eval_holdout_frac; 
     int num_eval_themes = std::max((int)theme_frac, 1);
     int start_idx = num_themes - num_eval_themes;
     ent->image_theme = start_idx + rand_gen.randn(num_eval_themes);
