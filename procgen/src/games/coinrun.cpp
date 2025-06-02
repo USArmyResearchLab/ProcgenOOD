@@ -254,7 +254,6 @@ class CoinRun : public BasicAbstractGame {
         ent->smart_step = true;
         ent->image_type = ENEMY1;
         ent->render_z = 1;
-        // std::cout << "create_enemy eval_env = " << this->eval_env << std::endl;
         choose_random_theme_type_match(ent, "enemy");
     }
 
@@ -262,7 +261,6 @@ class CoinRun : public BasicAbstractGame {
         auto ent = add_entity(x + .5, y + .5, 0, 0, .5, CRATE);
         choose_random_theme(ent);
     }
-
 
     void generate_coin_to_the_right() {
         int max_difficulty = 3;
@@ -284,7 +282,7 @@ class CoinRun : public BasicAbstractGame {
         int curr_y = 1;
 
         int pit_threshold = dif;
-        int danger_type = rand_gen.randn(3); 
+        int danger_type = rand_gen.randn(3);
 
         int w = main_width;
 
@@ -431,24 +429,14 @@ class CoinRun : public BasicAbstractGame {
         has_support = false;
         facing_right = true;
 
-        // std::cout << "game_reset eval_env = " << this->eval_env << std::endl;
-        if (options.distribution_mode == EasyMode) {
-            assert(false);
-            agent->image_theme = 0;
-            wall_theme = 0;
-            background_index = 0;
-        } else {
-            choose_random_theme_type_match(agent, "agent");
-            
-            // std::cout << "NUM_GROUND_THEMES!!!: " << NUM_GROUND_THEMES << std::endl; 
-            // wall_theme = randn_type_switch(NUM_GROUND_THEMES, "background");
-            wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
-            if (options.debug_mode >= 2) {
-                printf("chose agent theme: %d, with %d total themes\n", 
-                    agent->image_theme, asset_num_themes[agent->image_type]);
-                printf("chose wall_theme: %d, with %d total themes\n", wall_theme, NUM_GROUND_THEMES);
-            } 
-        }
+        assert(options.distribution_mode != EasyMode); 
+        choose_random_theme_type_match(agent, "agent");
+        wall_theme = rand_gen.randn(NUM_GROUND_THEMES);
+        if (options.debug_mode >= 2) {
+            printf("chose agent theme: %d, with %d total themes\n", 
+                agent->image_theme, asset_num_themes[agent->image_type]);
+            printf("chose wall_theme: %d, with %d total themes\n", wall_theme, NUM_GROUND_THEMES);
+        } 
 
         agent->rx = .5;
         agent->ry = 0.5787f;

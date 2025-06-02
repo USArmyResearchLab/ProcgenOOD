@@ -250,7 +250,7 @@ class StarPilotGame : public BasicAbstractGame {
             int flyer_theme = 0;
 
             if (type == FLYER || type == FAST_FLYER) {
-                group_size = rand_gen.randint(0, hp_max_group_size) + 1;  // TODO: switch on "platform" ("difficulty") type ? 
+                group_size = rand_gen.randint(0, hp_max_group_size) + 1;
                 flyer_theme = randn_type_switch(NUM_SHIP_THEMES, "enemy");
             }
 

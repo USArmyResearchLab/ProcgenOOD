@@ -177,7 +177,6 @@ class BasicAbstractGame : public Game {
 
         // Added for generalization testing -------------------------------------------// 
         // int num_eval_themes = 1; 
-        // TODO: Change this to use flexible number of themes 
 
     private:
         Grid<int> grid;

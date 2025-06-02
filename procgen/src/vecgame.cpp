@@ -364,7 +364,6 @@ VecGame::VecGame(int _nenvs, VecOptions opts) {
         }
 
         games[n]->game_init();
-        // std::cout << "2 eval_env = " << games[n]->eval_env << std::endl;
     }
 }
 
