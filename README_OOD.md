@@ -5,7 +5,13 @@
 
 ## Holdout Types 
 
-Supported holdout types are `all`, `background`, `enemy`, `platform`, and `none`.
+The supported holdout types during training and/or evaluation are `all`, `background`, `enemy`, `platform`, and `none` .  In addition to holdout types, a holdout fraction value is supported to provide finer control over the amount of data held out.
+
+* `all` - hold out all supported types
+* `background` - hold out background images
+* `enemy` - hold out enemy sprites
+* `platform` - hold out platforms
+* `none` - disable hold out
 
 ## Installation
 
