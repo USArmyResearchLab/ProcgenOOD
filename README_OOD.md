@@ -1,9 +1,17 @@
-
 # Procgen OOD Benchmark
 
 - OOD variant of Procgen environment to test generalization scaling of algorithms and their components 
     - Examples how to add your own variables or modify games further 
 
+## Holdout Types 
+
+The supported holdout types during training and/or evaluation are `all`, `background`, `enemy`, `platform`, and `none` .  In addition to holdout types, a holdout fraction value is supported to provide finer control over the amount of data held out.
+
+* `all` - hold out all supported types
+* `background` - hold out background images
+* `enemy` - hold out enemy sprites
+* `platform` - hold out platform difficulties
+* `none` - disable hold out
 
 ## Installation
 
