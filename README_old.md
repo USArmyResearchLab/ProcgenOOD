@@ -1,22 +1,95 @@
-# Procgen OOD Benchmark
+**Status:** Maintenance (expect bug fixes and minor updates)
 
-- OOD variant of Procgen environment to test generalization scaling of algorithms and their components 
-    - Examples how to add your own variables or modify games further 
+# Procgen Benchmark
 
-## Holdout Types 
+#### [[Blog Post]](https://openai.com/blog/procgen-benchmark/) [[Paper]](https://arxiv.org/abs/1912.01588)
 
-The supported holdout types during training and/or evaluation are `all`, `background`, `enemy`, `platform`, and `none` .  In addition to holdout types, a holdout fraction value is supported to provide finer control over the amount of data held out.
+16 simple-to-use procedurally-generated [gym](https://github.com/openai/gym) environments which provide a direct measure of how quickly a reinforcement learning agent learns generalizable skills.  The environments run at high speed (thousands of steps per second) on a single core.
 
-* `all` - hold out all supported types
-* `background` - hold out background images
-* `enemy` - hold out enemy sprites
-* `platform` - hold out platform difficulties
-* `none` - disable hold out
+We ran a competition in 2020 which used these environments to measure sample efficiency and generalization in RL. You can learn more [here](https://www.aicrowd.com/challenges/neurips-2020-procgen-competition).
+
+<img src="https://raw.githubusercontent.com/openai/procgen/master/screenshots/procgen.gif">
+
+These environments are associated with the paper [Leveraging Procedural Generation to Benchmark Reinforcement Learning](https://cdn.openai.com/procgen.pdf) [(citation)](#citation).  The code for running some experiments from the paper is in the [train-procgen](https://github.com/openai/train-procgen) repo.  For those familiar with the original [CoinRun environment](https://github.com/openai/coinrun), be sure to read the updated CoinRun description below as there have been subtle changes to the environment.
+
+Compared to [Gym Retro](https://github.com/openai/retro), these environments are:
+
+* Faster: Gym Retro environments are already fast, but Procgen environments can run >4x faster.
+* Randomized: Gym Retro environments are always the same, so you can memorize a sequence of actions that will get the highest reward.  Procgen environments are randomized so this is not possible.
+* Customizable: If you install from source, you can perform experiments where you change the environments, or build your own environments.  The environment-specific code for each environment is often less than 300 lines.  This is almost impossible with Gym Retro.
+
+Supported platforms:
+
+- Windows 10
+- macOS 10.14 (Mojave), 10.15 (Catalina)
+- Linux (manylinux2010)
+
+Supported Pythons:
+
+- 3.7 64-bit
+- 3.8 64-bit
+- 3.9 64-bit
+- 3.10 64-bit
+
+Supported CPUs:
+
+- Must have at least AVX
 
 ## Installation
 
-(Follow instructions from other repo) 
+First make sure you have a supported version of python:
 
+```
+# run these commands to check for the correct python version
+python -c "import sys; assert (3,7,0) <= sys.version_info <= (3,10,0), 'python is incorrect version'; print('ok')"
+python -c "import platform; assert platform.architecture()[0] == '64bit', 'python is not 64-bit'; print('ok')"
+```
+
+To install the wheel:
+
+```
+pip install procgen
+```
+
+If you get an error like `"Could not find a version that satisfies the requirement procgen"`, please upgrade pip: `pip install --upgrade pip`.
+
+To try an environment out interactively:
+
+```
+python -m procgen.interactive --env-name coinrun
+```
+
+The keys are: left/right/up/down + q, w, e, a, s, d for the different (environment-dependent) actions.  Your score is displayed as "episode_return" in the lower left.  At the end of an episode, you can see your final "episode_return" as well as "prev_level_complete" which will be `1` if you successfully completed the level.
+
+To create an instance of the [gym](https://github.com/openai/gym) environment:
+
+```
+import gym
+env = gym.make("procgen:procgen-coinrun-v0")
+```
+
+To create an instance of the [gym3](https://github.com/openai/gym3) (vectorized) environment:
+
+```
+from procgen import ProcgenGym3Env
+env = ProcgenGym3Env(num=1, env_name="coinrun")
+```
+
+### Docker
+
+A [`Dockerfile`](docker/Dockerfile) is included to demonstrate a minimal Docker-based setup that works for running random agent.
+
+```
+docker build docker --tag procgen
+docker run --rm -it procgen python3 -m procgen.examples.random_agent_gym
+```
+
+There is a second `Dockerfile` to demonstrate installing from source:
+
+```
+docker build . --tag procgen --file docker/Dockerfile.dev
+docker run --rm -it procgen python -c "from procgen import ProcgenGym3Env; env = ProcgenGym3Env(num=1, env_name='coinrun'); print(env.observe())"
+```
 
 ## Environments
 
@@ -24,7 +97,7 @@ The observation space is a box space with the RGB pixels the agent sees in a num
 
 The action space is `Discrete(15)` for which button combo to press.  The button combos are defined in [`env.py`](procgen/env.py).
 
-If you are using the gym3 vectorized environment, the observation space is a dictionary space where the pixels are under the key "rgb". We recommend the stable_baselines3 `VecEnv` wrapper. 
+If you are using the vectorized environment, the observation space is a dictionary space where the pixels are under the key "rgb".
 
 Here are the 16 environments:
 
@@ -90,7 +163,24 @@ env = ProcgenGym3Env(num=1, env_name="coinrun", start_level=0, num_levels=1)
 
 To render with the gym3 environment, pass `render_mode="rgb_array"`.  If you wish to view the output, use a `gym3.ViewerWrapper`.
 
+## Saving and loading the environment state
 
+If you are using the gym3 interface, you can save and load the environment state:
+
+```
+from procgen import ProcgenGym3Env
+env = ProcgenGym3Env(num=1, env_name="coinrun", start_level=0, num_levels=1)
+states = env.callmethod("get_state")
+env.callmethod("set_state", states)
+```
+
+This returns a list of byte strings representing the state of each game in the vectorized environment.
+
+## Notes
+
+* You should depend on a specific version of this library (using `==`) for your experiments to ensure they are reproducible.  You can get the current installed version with `pip show procgen`.
+* This library does not require or make use of GPUs.
+* While the library should be thread safe, each individual environment instance should only be used from a single thread.  The library is not fork safe unless you set `num_threads=0`.  Even if you do that, `Qt` is not guaranteed to be fork safe, so you should probably create the environment after forking or not use fork at all.
 
 # Install from Source
 
@@ -163,14 +253,27 @@ If you run the interactive script (making sure that you installed from source), 
 
 `python -m procgen.interactive --env-name heist`
 
+# Changelog
 
-# License 
+See [CHANGES](CHANGES.md) for changes present in each release.
 
-This project contains two different licenses for different parts of the code:
+# Contributing
 
-- The original code, which was forked from [Procgen](https://github.com/openai/procgen/tree/5e1dbf341d291eff40d1f9e0c0a0d5003643aebf), is licensed under the MIT license. You can find the MIT license in the `LICENSE-MIT` file.
-- All modifications and additions made by Kevin Corder, Parsons, and/or DEVCOM Army Research Laboratory are licensed under the CC0 1.0 Universal license. See the `LICENSE-CC0` file for details.
+See [CONTRIBUTING](CONTRIBUTING.md) for information on contributing.
+
+# Assets
+
+See [ASSET_LICENSES](ASSET_LICENSES.md) for asset license information.
 
 # Citation
 
-(INSERT CITATION HERE)
+Please cite using the following bibtex entry:
+
+```
+@article{cobbe2019procgen,
+  title={Leveraging Procedural Generation to Benchmark Reinforcement Learning},
+  author={Cobbe, Karl and Hesse, Christopher and Hilton, Jacob and Schulman, John},
+  journal={arXiv preprint arXiv:1912.01588},
+  year={2019}
+}
+```
