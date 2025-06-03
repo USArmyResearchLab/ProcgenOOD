@@ -23,14 +23,31 @@ In the Procgen benchmark, algorithms are trained on a fixed number of level seed
 Approaches that help RL performance IID often do not transfer to OOD, even by small distribution shifts. As RL algorithms are inherently learning with non-stationary targets and typically deployed with sim2real transfer, we believe that evaluating OOD is far more valuable to the research community. 
 
 
+<br>
+
 ## Installation 
 
+The following instructions assume you have `conda` installed. 
+If you do not have `conda`, you can install it from [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
 
 
 
+```bash
+cd /path/to/your/clone/of/procgen-ood 
+conda create -n procgen_ood -f environment.yml
+conda activate procgen_ood
+pip install -e .  # install the package in editable mode 
+``` 
+
+Verify the installation by running the following command:
+
+```bash 
+python -m procgen.interactive --env-name coinrun 
+```
 
 
 
+<br>
 
 ## Holdout Types 
 
@@ -61,9 +78,14 @@ The supported holdout types during training and/or evaluation are `all`, `backgr
 |     | ~~chaser~~                    |       |       |          |            |     |
 |     | ~~plunder~~                   |       |       |          |            |     |
 
-> [!NOTE] **NOTE:** The behavior of holdout type "all" is **game specific!** Holdout type "all" independently samples all other supported types. 
+> [!NOTE]  
+> The behavior of holdout type "all" is **game specific!** Holdout type "all" independently samples all other supported types. 
 > - E.g., `coinrun` with holdout type "all" will independently sample each of \["background", "agent", "enemy", "platform"\] variables using the accompanying `--[train/eval]-holdout-frac 0.1` argument. 
   > In contrast, `bigfish` only supports randomizing over "enemy" & "background".
+> - As seen in the table above, `chaser` and `plunder` do not support any holdout types. 
+
+
+<br>
 
 ## Environment Options
 
@@ -104,6 +126,7 @@ env = gym.make(
 > - If you just want the frames instead of the window, pass `render_mode="rgb_array"`.
 
 
+<br>
 
 # License 
 
@@ -111,6 +134,9 @@ This project contains two different licenses for different parts of the code:
 
 - The original code, which was forked from [Procgen](https://github.com/openai/procgen/tree/5e1dbf341d291eff40d1f9e0c0a0d5003643aebf), is licensed under the MIT license. You can find the MIT license in the `LICENSE-MIT` file.
 - All modifications and additions made by Kevin Corder, Song Park, DEVCOM Army Research Laboratory, and/or Parsons Corporation are licensed under the CC0 1.0 Universal license. See the `LICENSE-CC0` file for details.
+
+
+<br> 
 
 # Citation
 
