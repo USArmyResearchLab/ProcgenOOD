@@ -10,7 +10,7 @@ The supported holdout types during training and/or evaluation are `all`, `backgr
 * `all` - hold out all supported types
 * `background` - hold out background images
 * `enemy` - hold out enemy sprites
-* `platform` - hold out platforms
+* `platform` - hold out platform difficulties
 * `none` - disable hold out
 
 ## Installation
