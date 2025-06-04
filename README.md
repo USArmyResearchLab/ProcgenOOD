@@ -1,14 +1,14 @@
 # Procgen OOD Benchmark
 
 
-ProcgenOOD is an extension of the standard [Procgen benchmark environment](https://github.com/openai/procgen) that evaluates on configurable level generation variables out-of-distribution. These predefined variables are called *holdout types* and correspond to random generation of an asset or value within the Procgen games. See [[#Holdout Types]] below for specific types and game support for each. 
+ProcgenOOD is an extension of the standard [Procgen benchmark environment](https://github.com/openai/procgen) that evaluates on configurable level generation variables out-of-distribution. These predefined variables are called *holdout types* and correspond to the random generation of an asset or value within the Procgen games. See [Holdout Types](#Holdout-Types) below for specific types and game support for each. 
 
-Like the original be, ProcgenOOD contains 16 procedurally generated [gym](https://github.com/openai/gym) environments that run fast. 
+Like the original, ProcgenOOD contains 16 procedurally generated [gym](https://github.com/openai/gym) environments that run efficiently. 
 
-This README describes our extension and changes to the original repo, along with basic installation and usage information to fit most users' needs. For more information on original game descriptions and issues, 
+This README describes our extension and changes to the original repository, along with basic installation and usage information to fit most users' needs. For more information on the original game descriptions and known issues, please refer to the [Procgen's README](https://github.com/openai/procgen/blob/master/README.md).
 
-> [!todo] 
-> The associated training repository containing the (future) paper's experimental results has yet to be open-sourced. 
+> NOTE: 
+> The associated training repository containing the (future) paper's experimental results will be open-sourced later. 
 
 
 <img src="https://raw.githubusercontent.com/openai/procgen/master/screenshots/procgen.gif">
@@ -51,15 +51,18 @@ python -m procgen.interactive --env-name coinrun
 
 ## Holdout Types 
 
-The supported holdout types during training and/or evaluation are `all`, `background`, `enemy`, `platform`, and `none` .  In addition to holdout types, a holdout fraction value is supported to provide finer control over the amount of data held out. These are further specified with holding out during training or evaluation. The predefined holdout types are: 
+Holdout types can be used to withhold certain aspects of the level generation during training and/or evaluation. The holdout types are predefined and can be set using the `--train-holdout-type` and `--eval-holdout-type` command line arguments, or through the environment options in code.
 
-* `all` - Hold out all supported types (see following table). 
-* `background` - Hold out background images. 
-* `enemy` - Hold out enemy sprites. 
-* `platform` - Hold out platforming level difficulties. 
-* `none` - Disable hold out. Along with `--num-levels=500`, this replicates the original Procgen benchmark. 
+In addition to holdout types, a *holdout fraction* value is supported to provide finer control over the amount of held-out data. These settings can be applied during training and/or evaluation. The predefined holdout types are: 
 
-| \#  | Game \\ Supports Holdout Type | agent | enemy | platform | background | all |
+* "agent" - Hold out player sprites.
+* "enemy" - Hold out enemy sprites. 
+* "platform" - Hold out platforming level difficulties. 
+* "background" - Hold out background images. 
+* "all" - Hold out all supported types (see following table). 
+* "none" - Disable hold out. Along with `--num-levels=500`, this replicates the original Procgen benchmark. 
+
+| \#  | Game | agent | enemy | platform | background | all |
 | --- | ----------------------------- | ----- | ----- | -------- | ---------- | --- |
 | 1   | bigfish                       |       | ✔     |          | ✔          | ✔   |
 | 2   | bossfight                     | ✔     | ✔     |          | ✔          | ✔   |
@@ -78,8 +81,8 @@ The supported holdout types during training and/or evaluation are `all`, `backgr
 |     | ~~chaser~~                    |       |       |          |            |     |
 |     | ~~plunder~~                   |       |       |          |            |     |
 
-> [!NOTE]  
-> The behavior of holdout type "all" is **game specific!** Holdout type "all" independently samples all other supported types. 
+> NOTE: 
+> The behavior of holdout type "all" is **game specific!** Holdout type `all` independently samples all other supported types. 
 > - E.g., `coinrun` with holdout type "all" will independently sample each of \["background", "agent", "enemy", "platform"\] variables using the accompanying `--[train/eval]-holdout-frac 0.1` argument. 
   > In contrast, `bigfish` only supports randomizing over "enemy" & "background".
 > - As seen in the table above, `chaser` and `plunder` do not support any holdout types. 
@@ -93,7 +96,7 @@ These options from the base environment are relevant for testing OOD with this c
 
 * `env_name` - Name of environment, or comma-separate list of environment names to instantiate as each env in the VecEnv.
 * `num_levels=0` - The number of unique levels that can be generated. Set to 0 to use unlimited levels.
-* `start_level=0` - The lowest seed that will be used to generated levels. 'start_level' and 'num_levels' fully specify the set of possible levels.
+* `start_level=0` - The lowest seed that will be used to generated levels. `start_level` and `num_levels` fully specify the set of possible levels.
 * `debug=False` - Set to `True` to use the debug build if building from source.
 * `debug_mode=0` - A useful flag that's passed through to procgen envs. Use however you want during debugging.
 
@@ -121,7 +124,8 @@ env = gym.make(
 )
 ```
 
-> [!NOTE] NOTE: Since the gym environment is adapted from a gym3 environment, early calls to `reset()` are disallowed and the `render()` method does not do anything.  
+> NOTE: 
+> Since the gym environment is adapted from a gym3 environment, early calls to `reset()` are disallowed and the `render()` method does not do anything.  
 > - To render the environment, pass `render_mode="human"` to the constructor, which will send `render_mode="rgb_array"` to the environment constructor and wrap it in a `gym3.ViewerWrapper`.  
 > - If you just want the frames instead of the window, pass `render_mode="rgb_array"`.
 
@@ -142,4 +146,4 @@ This project contains two different licenses for different parts of the code:
 
 To cite this project in your work, please use the following Bibtex: 
 
-(INSERT CITATION HERE)
+(Publication in progress)
